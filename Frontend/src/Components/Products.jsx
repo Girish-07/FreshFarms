@@ -1,24 +1,32 @@
 import { useEffect, useState } from "react";
 import Footer from "./Footer";
-import { categories, products } from "../data/marketData";
+import { categories } from "../data/marketData";
+import { api } from "../utils/api";
+import ProductCard from "./ProductCard";
 
 const Products = () => {
   const productsPerLoad = 15;
-  const [activeCategory, setActiveCategory] = useState("All products");
+  const [activeCategory, setActiveCategory] = useState(
+    () => new URLSearchParams(window.location.search).get("category") || "All products",
+  );
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("featured");
   const [visibleCount, setVisibleCount] = useState(productsPerLoad);
-  const [showTopButton, setShowTopButton] = useState(false);
-
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   useEffect(() => {
-    const handleScroll = () => {
-      setShowTopButton(window.scrollY > 500);
+    const loadProducts = async () => {
+      try {
+        setProducts(await api.getProducts());
+      } catch (requestError) {
+        setError(requestError.message);
+      } finally {
+        setLoading(false);
+      }
     };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    loadProducts();
   }, []);
-
   const filteredProducts = products.filter((product) => {
     const query = search.trim().toLowerCase();
     const matchesCategory =
@@ -47,15 +55,14 @@ const Products = () => {
     <main className="min-h-screen bg-emerald-100 text-slate-900">
       <section className="bg-emerald-100 px-4 pb-2 pt-3 lg:px-10 lg:pb-10 lg:pt-14">
         <div className="mx-auto max-w-7xl">
-          <p className="font-semibold text-orange-600">Fresh from the farm</p>
+          <p className="font-semibold text-orange-600">Fresh for your kitchen</p>
           <div className="mt-2 flex flex-col justify-between gap-5 md:flex-row md:items-end">
             <div>
               <h1 className="hidden text-3xl font-black tracking-tight text-slate-950 sm:text-4xl lg:block lg:text-5xl">
                 Fresh products, fair prices
               </h1>
               <p className="mt-4 hidden max-w-2xl text-lg leading-8 text-slate-600 lg:block">
-                Discover the freshest products from our verified farmers at the
-                best prices.
+                Discover the freshest products at the best prices.
               </p>
             </div>
           </div>
@@ -135,66 +142,15 @@ const Products = () => {
           </p> */}
         </div>
 
-        {visibleProducts.length ? (
+        {loading ? <p className="mt-8 text-slate-500">Loading fresh products...</p> : error ? <p className="mt-8 text-sm font-semibold text-red-600">{error}</p> : visibleProducts.length ? (
           <div
             key={`${activeCategory}-${search}-${sort}`}
             className="catalog-results mt-6 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 lg:gap-6"
           >
-            {visibleProducts.map((product, index) => (
-              <article
-                key={product.name}
-                className="catalog-card slow-card-hover flex min-h-[350px] cursor-pointer flex-col overflow-hidden rounded-2xl border-2 border-transparent bg-emerald-50 shadow-sm hover:border-emerald-500 sm:min-h-[420px] lg:min-h-[455px]"
-                style={{
-                  animationDelay: `${(index % productsPerLoad) * 45}ms`,
-                }}
-              >
-                <div className="relative">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="h-32 w-full object-cover sm:h-44 lg:h-56"
-                    onError={(event) => {
-                      event.currentTarget.onerror = null;
-                      event.currentTarget.src =
-                        "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=700&q=85";
-                    }}
-                  />
-                  <span className="absolute left-2 top-2 max-w-[45%] truncate rounded-full bg-emerald-100 px-2 py-1 text-[9px] font-bold text-emerald-700 sm:left-4 sm:top-4 sm:max-w-none sm:px-3 sm:text-xs">
-                    {product.category === "Organic" ||
-                    product.name.includes("Organic")
-                      ? "Organic"
-                      : product.category}
-                  </span>
-                  <span className="absolute right-2 top-2 rounded-full bg-orange-100 px-2 py-1 text-[9px] font-bold text-orange-700 sm:right-4 sm:top-4 sm:px-3 sm:text-xs">
-                    {product.discount}
-                  </span>
-                </div>
-                <div className="flex flex-1 flex-col p-3 sm:p-5">
-                  <h3 className="text-sm font-bold text-slate-950 sm:text-lg">
-                    {product.name}
-                  </h3>
-                  <p className="mt-1 text-xs leading-5 text-slate-500 sm:mt-2 sm:text-sm sm:leading-6">
-                    {product.desc}
-                  </p>
-                  <p className="mt-2 text-[10px] text-slate-500 sm:mt-3 sm:text-xs">
-                    {product.farmer} ·{" "}
-                    <span className="font-bold text-orange-600">
-                      {product.rating} ★
-                    </span>
-                  </p>
-                  <div className="mt-auto flex flex-col items-stretch gap-2 pt-4 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:pt-6">
-                    <p className="text-base font-black text-slate-950 sm:text-xl">
-                      {product.price}{" "}
-                      <del className="text-xs font-normal text-slate-400 sm:text-sm">
-                        {product.oldPrice}
-                      </del>
-                    </p>
-                    <button className="rounded-full border border-emerald-700 px-2 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-700 hover:text-white sm:px-4 sm:py-2 sm:text-sm">
-                      Add to Cart
-                    </button>
-                  </div>
-                </div>
-              </article>
+            {visibleProducts.map((product) => (
+              <div key={product.name} className="catalog-card">
+                <ProductCard product={product} />
+              </div>
             ))}
           </div>
         ) : (
@@ -207,34 +163,14 @@ const Products = () => {
             </p>
           </div>
         )}
-        {(visibleProducts.length > 0 &&
-          visibleProducts.length < filteredProducts.length) ||
-        showTopButton ? (
+        {visibleProducts.length > 0 && visibleProducts.length < filteredProducts.length ? (
           <div className="mt-10 flex items-center justify-between gap-4">
-            {visibleProducts.length > 0 &&
-            visibleProducts.length < filteredProducts.length ? (
-              <button
-                onClick={() =>
-                  setVisibleCount((count) => count + productsPerLoad)
-                }
-                className="rounded-full bg-emerald-700 px-3 py-2 text-xs font-bold text-white shadow-md shadow-emerald-700/20 transition-colors hover:bg-emerald-800 sm:px-6 sm:py-3 sm:text-sm"
-              >
-                View More Products
-              </button>
-            ) : (
-              <span />
-            )}
-            {showTopButton && (
-              <button
-                type="button"
-                aria-label="Go to top"
-                title="Go to top"
-                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                className="ml-auto rounded-full border border-emerald-700 bg-emerald-50 px-3 py-2 text-xs font-bold text-emerald-800 shadow-sm transition-all hover:-translate-y-1 hover:bg-emerald-100 sm:px-5 sm:py-3 sm:text-sm"
-              >
-                Go to top ↑
-              </button>
-            )}
+            <button
+              onClick={() => setVisibleCount((count) => count + productsPerLoad)}
+              className="rounded-full bg-emerald-700 px-3 py-2 text-xs font-bold text-white sm:px-6 sm:py-3 sm:text-sm"
+            >
+              View More Products
+            </button>
           </div>
         ) : null}
       </section>

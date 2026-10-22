@@ -1,16 +1,29 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { api } from "../utils/api";
+import { useAuthStore } from "../store/authStore";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showToast, setShowToast] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const setSession = useAuthStore((state) => state.setSession);
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    if (email === "admin@gmail.com" && password === "123") {
-      setShowToast(true);
-      setTimeout(() => setShowToast(false), 2500);
+    setError("");
+    setLoading(true);
+    try {
+      const session = await api.login({ email, password });
+      setSession(session);
+      navigate(location.state?.from || "/profile");
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -20,7 +33,7 @@ const Login = () => {
         <section className="relative flex min-h-[360px] flex-col justify-between overflow-hidden bg-emerald-700 p-8 text-white sm:p-12">
           <div className="relative z-10">
             <Link to="/" className="text-2xl font-black tracking-tight">
-              🌾Fresh<span className="text-orange-300">Farm</span>
+              Fresh<span className="text-orange-300">Farm</span>
             </Link>
             <p className="mt-16 max-w-sm text-sm font-semibold uppercase tracking-[0.2em] text-emerald-200">
               workspace
@@ -29,12 +42,12 @@ const Login = () => {
               Grow the marketplace with confidence.
             </h1>
             <p className="mt-5 max-w-md text-base leading-7 text-emerald-100">
-              Manage products, farmers, and fresh orders from one calm place.
+              Shop fresh produce and follow your orders.
             </p>
           </div>
           <div className="relative z-10 mt-10 flex gap-3 text-sm text-emerald-100">
             <span className="rounded-full bg-emerald-600 px-4 py-2">
-              500+ farmers
+              500+ fresh products
             </span>
             <span className="rounded-full bg-emerald-600 px-4 py-2">
               Fresh every day
@@ -92,10 +105,12 @@ const Login = () => {
               </div>
               <button
                 type="submit"
+                disabled={loading}
                 className="w-full rounded-xl bg-emerald-700 px-5 py-3.5 font-bold text-white shadow-lg shadow-emerald-700/20 transition-colors hover:bg-emerald-800"
               >
-                Sign in
+                {loading ? "Signing in..." : "Sign in"}
               </button>
+              {error && <p className="text-sm font-semibold text-red-600">{error}</p>}
             </form>
 
             <div className="my-8 flex items-center gap-4 text-xs font-bold uppercase tracking-[0.14em] text-slate-400">
@@ -103,19 +118,13 @@ const Login = () => {
               or
               <span className="h-px flex-1 bg-emerald-200" />
             </div>
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <button
-                type="button"
-                className="flex-1 rounded-xl border border-emerald-300 bg-white px-4 py-3 text-sm font-bold text-emerald-800 hover:bg-emerald-100"
-              >
-                Continue with Google
-              </button>
-              <button
-                type="button"
-                className="flex-1 rounded-xl border border-emerald-300 bg-white px-4 py-3 text-sm font-bold text-emerald-800 hover:bg-emerald-100"
+            <div>
+              <Link
+                to="/register"
+                className="block w-full rounded-xl border border-emerald-300 bg-white px-4 py-3 text-center text-sm font-bold text-emerald-800 hover:bg-emerald-100"
               >
                 Create account
-              </button>
+              </Link>
             </div>
             <Link
               to="/"
@@ -126,11 +135,6 @@ const Login = () => {
           </div>
         </section>
       </div>
-      {showToast && (
-        <div className="fixed left-4 right-4 top-4 z-30 rounded-xl bg-emerald-700 px-4 py-3 text-center text-sm font-bold text-white shadow-lg shadow-emerald-900/20 sm:left-auto sm:right-6 sm:top-6 sm:px-5">
-          Welcome, Admin!
-        </div>
-      )}
     </main>
   );
 };
