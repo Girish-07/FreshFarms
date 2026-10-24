@@ -12,7 +12,13 @@ const Farmers = () => (
       <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {farmers.map((farmer) => (
           <article key={farmer.name} className="rounded-2xl bg-white p-5 shadow-sm">
-            <img src={farmer.image} alt={`${farmer.name} profile`} className="h-56 w-full rounded-xl object-cover" />
+            <Link
+              to={`/farmers/${getFarmerId(farmer)}`}
+              aria-label={`Shop ${farmer.name}`}
+              className="block"
+            >
+              <img src={farmer.image} alt={`${farmer.name} profile`} className="h-56 w-full cursor-pointer rounded-xl object-cover" />
+            </Link>
             <h2 className="mt-5 text-xl font-black">{farmer.name}</h2>
             <p className="mt-1 text-sm text-slate-500">{farmer.details}</p>
             <p className="mt-3 text-sm"><span className="font-bold">Specializes in:</span> {farmer.specialty}</p>
