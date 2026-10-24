@@ -76,6 +76,17 @@ export const api = {
     }),
   getAddresses: (token) =>
     apiRequest("/auth/addresses", { headers: authHeaders(token) }),
+  updateAddress: (id, payload, token) =>
+    apiRequest(`/auth/addresses/${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      headers: authHeaders(token),
+      body: JSON.stringify(payload),
+    }),
+  deleteAddress: (id, token) =>
+    apiRequest(`/auth/addresses/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+      headers: authHeaders(token),
+    }),
 
   // Orders
   createOrder: (payload, token) =>
