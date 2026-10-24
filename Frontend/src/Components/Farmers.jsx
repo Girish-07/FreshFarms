@@ -4,14 +4,14 @@ import { farmers } from "../data/marketData";
 import { getFarmerId } from "../utils/market";
 
 const Farmers = () => (
-  <main className="min-h-screen bg-emerald-50 px-6 py-12 text-slate-900 lg:px-10 lg:py-16">
+  <main className="min-h-screen bg-emerald-100 px-6 py-12 text-slate-900 lg:px-10 lg:py-16">
     <div className="mx-auto max-w-7xl">
       <p className="font-semibold text-orange-600">People behind your produce</p>
       <h1 className="mt-2 text-3xl font-black sm:text-5xl">Meet our farmers</h1>
       <p className="mt-4 max-w-2xl text-slate-500">Browse fresh products by the trusted local growers who supply them.</p>
       <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {farmers.map((farmer) => (
-          <article key={farmer.name} className="rounded-2xl bg-white p-5 shadow-sm">
+          <article key={farmer.name} className="slow-card-hover rounded-2xl border-2 border-transparent bg-white p-5 shadow-sm hover:border-emerald-500">
             <Link
               to={`/farmers/${getFarmerId(farmer)}`}
               aria-label={`Shop ${farmer.name}`}
